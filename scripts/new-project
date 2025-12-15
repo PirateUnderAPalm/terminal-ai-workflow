@@ -64,6 +64,38 @@ echo -e "${GREEN}Project '$PROJECT_NAME' created successfully!${NC}"
 echo ""
 echo "Location: $PROJECT_DIR"
 echo ""
+
+# Ask about GitHub repo
+echo -e "${YELLOW}GitHub Integration${NC}"
+read -p "Create a private GitHub repository for this project? (y/N): " CREATE_REPO
+
+if [[ "$CREATE_REPO" =~ ^[Yy]$ ]]; then
+    if command -v gh &> /dev/null && gh auth status &> /dev/null 2>&1; then
+        # Use GitHub CLI
+        echo -e "${BLUE}Creating private GitHub repository...${NC}"
+        gh repo create "$PROJECT_NAME" --private --source=. --remote=origin
+        git push -u origin main
+        echo -e "${GREEN}✓ Repository created and pushed to GitHub${NC}"
+        echo "  https://github.com/PirateUnderAPalm/$PROJECT_NAME"
+    else
+        # Manual instructions
+        echo ""
+        echo -e "${YELLOW}GitHub CLI not available. Create manually:${NC}"
+        echo "  1. Go to: https://github.com/new"
+        echo "  2. Name: $PROJECT_NAME"
+        echo "  3. Visibility: Private"
+        echo "  4. Do NOT initialize with README"
+        echo "  5. Create repository"
+        echo ""
+        echo "Then run these commands:"
+        echo "  cd $PROJECT_DIR"
+        echo "  git remote add origin git@github.com:PirateUnderAPalm/$PROJECT_NAME.git"
+        echo "  git push -u origin main"
+        echo ""
+    fi
+fi
+
+echo ""
 echo "Quick start:"
 echo "  cd $PROJECT_DIR"
 echo "  claude          # Start with Claude"
