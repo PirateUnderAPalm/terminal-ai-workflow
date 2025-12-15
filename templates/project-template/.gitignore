@@ -1,0 +1,28 @@
+# AI Workflow gitignore
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Environment
+.env
+.env.local
+
+# API keys (if accidentally created)
+*api_key*
+*apikey*
+*.key
+
+# Large outputs (case by case - may want to track some)
+# output/finals/*.pdf
+# output/finals/*.docx
+
+# Tool-specific
+.claude/
+.gemini/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Add project-specific ignores below

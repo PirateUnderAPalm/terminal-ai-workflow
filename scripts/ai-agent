@@ -1,0 +1,85 @@
+#!/bin/bash
+# AI Agent Launcher
+# Quick launcher for pre-defined agents
+# Usage: ai-agent <agent-name> [task-description]
+
+set -e
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Check if in project directory
+if [ ! -f "agents.md" ]; then
+    echo -e "${RED}Error: agents.md not found${NC}"
+    echo "Run this from a project directory"
+    exit 1
+fi
+
+AGENT_NAME="$1"
+TASK="${@:2}"
+
+if [ -z "$AGENT_NAME" ]; then
+    echo -e "${YELLOW}Available agents:${NC}"
+    echo "  critic       - Brutal code/content review"
+    echo "  researcher   - Deep research specialist"
+    echo "  fact-checker - Verify factual claims"
+    echo "  closer       - Session closer (or use session-closer script)"
+    echo ""
+    echo "Usage: ai-agent <agent-name> [task]"
+    exit 1
+fi
+
+# Build agent prompt from agents.md
+case "$AGENT_NAME" in
+    critic|brutal-critic)
+        AGENT_ROLE="Brutal Critic"
+        PROMPT="You are the Brutal Critic agent. Review the content/code and provide aggressive, honest feedback. Be blunt and cite specific weaknesses. Score harshly (1-10)."
+        ;;
+    researcher|research)
+        AGENT_ROLE="Research Specialist"
+        PROMPT="You are the Research Specialist agent. Conduct thorough research, gather sources, verify facts, and write findings to the research/ directory. Cite all sources."
+        ;;
+    fact-checker|checker)
+        AGENT_ROLE="Fact Checker"
+        PROMPT="You are the Fact Checker agent. Verify factual claims, cross-reference sources, rate confidence (High/Medium/Low), and flag unsupported claims."
+        ;;
+    closer|session-closer)
+        echo -e "${BLUE}Launching session closer...${NC}"
+        exec /data/ai-projects/scripts/session-closer
+        ;;
+    *)
+        echo -e "${RED}Unknown agent: $AGENT_NAME${NC}"
+        exit 1
+        ;;
+esac
+
+echo -e "${YELLOW}Launching agent: $AGENT_ROLE${NC}"
+echo -e "${BLUE}Task: ${TASK:-'(interactive)'}${NC}"
+echo ""
+
+# For Claude Code (if available)
+if command -v claude &> /dev/null; then
+    echo -e "${GREEN}Using Claude Code${NC}"
+    echo "Agent context loaded from agents.md"
+    echo ""
+    if [ -n "$TASK" ]; then
+        echo "$PROMPT Task: $TASK" | claude
+    else
+        claude -p "$PROMPT"
+    fi
+# For Gemini (if available)
+elif command -v gemini &> /dev/null; then
+    echo -e "${GREEN}Using Gemini CLI${NC}"
+    if [ -n "$TASK" ]; then
+        gemini -p "$PROMPT Task: $TASK"
+    else
+        gemini -p "$PROMPT"
+    fi
+else
+    echo -e "${RED}No AI CLI tool found${NC}"
+    echo "Install claude, gemini, or opencode first"
+    exit 1
+fi
